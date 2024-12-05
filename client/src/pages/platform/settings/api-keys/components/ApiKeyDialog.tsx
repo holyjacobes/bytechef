@@ -126,9 +126,9 @@ const ApiKeyDialog = ({apiKey, onClose, triggerNode}: ApiKeyDialogProps) => {
                         {secretApiKey ? (
                             <div className="space-y-4">
                                 <p className="text-sm">
-                                    Please save this secret API Key somewhere safe and accessible. For security reasons,
+                                    Please save this secret API key somewhere safe and accessible. For security reasons,
                                     you won&apos;t be able to view it again through your ByteChef account. If you lose
-                                    this secret API Key, you&apos;ll need to generate a new one.
+                                    this secret API key, you&apos;ll need to generate a new one.
                                 </p>
 
                                 <div className="flex space-x-1">
@@ -138,7 +138,7 @@ const ApiKeyDialog = ({apiKey, onClose, triggerNode}: ApiKeyDialogProps) => {
                                         onClick={() => {
                                             copyToClipboard(secretApiKey);
 
-                                            toast({description: 'The secret API Key is copied.'});
+                                            toast({description: 'The secret API key is copied.'});
                                         }}
                                     >
                                         <ClipboardIcon className="h-4" /> Copy

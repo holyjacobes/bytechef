@@ -8,6 +8,7 @@ import {useQueryClient} from '@tanstack/react-query';
 import {PencilIcon, TrashIcon} from 'lucide-react';
 import {memo, useState} from 'react';
 import {Handle, NodeProps, Position, useReactFlow} from 'reactflow';
+import sanitize from 'sanitize-html';
 import {twMerge} from 'tailwind-merge';
 
 import useNodeClickHandler from '../hooks/useNodeClick';
@@ -110,8 +111,17 @@ const WorkflowNode = ({data, id}: NodeProps) => {
                     </Button>
                 </HoverCardTrigger>
 
-                <HoverCardContent className="text-sm" side="right">
-                    {workflowNodeDescription?.description}
+                <HoverCardContent className="w-fit min-w-72 max-w-[601px] text-sm" side="right">
+                    {workflowNodeDescription?.description && (
+                        <div
+                            className="flex"
+                            dangerouslySetInnerHTML={{
+                                __html: sanitize(workflowNodeDescription.description, {
+                                    allowedAttributes: {div: ['class'], table: ['class'], td: ['class'], tr: ['class']},
+                                }),
+                            }}
+                        />
+                    )}
                 </HoverCardContent>
             </HoverCard>
 

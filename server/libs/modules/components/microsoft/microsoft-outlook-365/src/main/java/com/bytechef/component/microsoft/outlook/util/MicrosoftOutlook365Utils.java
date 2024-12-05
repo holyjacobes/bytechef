@@ -19,6 +19,7 @@ package com.bytechef.component.microsoft.outlook.util;
 import static com.bytechef.component.microsoft.outlook.constant.MicrosoftOutlook365Constants.ODATA_NEXT_LINK;
 import static com.bytechef.component.microsoft.outlook.constant.MicrosoftOutlook365Constants.VALUE;
 
+import com.bytechef.component.definition.ActionContext;
 import com.bytechef.component.definition.Context;
 import com.bytechef.component.definition.Context.Http;
 import com.bytechef.component.definition.TypeReference;
@@ -30,6 +31,9 @@ import java.util.Map;
  * @author Monika Kušter
  */
 public class MicrosoftOutlook365Utils {
+
+    private MicrosoftOutlook365Utils() {
+    }
 
     public static List<Map<?, ?>> getItemsFromNextPage(String link, Context context) {
         List<Map<?, ?>> otherItems = new ArrayList<>();
@@ -54,5 +58,14 @@ public class MicrosoftOutlook365Utils {
         }
 
         return otherItems;
+    }
+
+    public static String getMailboxTimeZone(ActionContext actionContext) {
+        Map<String, String> body = actionContext.http(http -> http.get("/mailboxSettings/timeZone"))
+            .configuration(Http.responseType(Http.ResponseType.JSON))
+            .execute()
+            .getBody(new TypeReference<>() {});
+
+        return body.get(VALUE);
     }
 }

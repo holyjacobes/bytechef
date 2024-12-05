@@ -7,8 +7,12 @@
 
 package com.bytechef.ee.automation.apiplatform.configuration.web.rest.mapper;
 
+import com.bytechef.automation.configuration.domain.Project;
+import com.bytechef.automation.configuration.domain.ProjectInstance;
+import com.bytechef.automation.configuration.web.rest.model.ProjectBasicModel;
+import com.bytechef.automation.configuration.web.rest.model.ProjectInstanceBasicModel;
 import com.bytechef.ee.automation.apiplatform.configuration.dto.ApiCollectionDTO;
-import com.bytechef.ee.automation.apiplatform.configuration.web.rest.mapper.config.AutomationApiPlatformMapperSpringConfig;
+import com.bytechef.ee.automation.apiplatform.configuration.web.rest.mapper.config.ApiPlatformMapperSpringConfig;
 import com.bytechef.ee.automation.apiplatform.configuration.web.rest.model.ApiCollectionModel;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
@@ -21,7 +25,7 @@ import org.springframework.core.convert.converter.Converter;
  *
  * @author Ivica Cardic
  */
-@Mapper(config = AutomationApiPlatformMapperSpringConfig.class)
+@Mapper(config = ApiPlatformMapperSpringConfig.class)
 public interface ApiCollectionMapper extends Converter<ApiCollectionDTO, ApiCollectionModel> {
 
     @Override
@@ -31,4 +35,18 @@ public interface ApiCollectionMapper extends Converter<ApiCollectionDTO, ApiColl
     @InheritInverseConfiguration
     @DelegatingConverter
     ApiCollectionDTO invertConvert(ApiCollectionModel apiCollectionModel);
+
+    @Mapping(target = "lastExecutionDate", ignore = true)
+    ProjectInstanceBasicModel mapToProjectInstanceModel(ProjectInstance projectInstance);
+
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "tags", ignore = true)
+    @Mapping(target = "tagIds", ignore = true)
+    ProjectInstance mapToProjectInstance(ProjectInstanceBasicModel projectInstanceBasicModel);
+
+    @Mapping(target = "workspaceId", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "tagIds", ignore = true)
+    @Mapping(target = "categoryId", ignore = true)
+    Project mapToProject(ProjectBasicModel projectBasicModel);
 }

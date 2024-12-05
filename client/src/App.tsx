@@ -1,6 +1,7 @@
 import {Toaster} from '@/components/ui/toaster';
 import useFetchInterceptor from '@/config/useFetchInterceptor';
 import CopilotPanel from '@/pages/platform/copilot/CopilotPanel';
+import {CopilotRuntimeProvider} from '@/pages/platform/copilot/CopilotRuntimeProvider';
 import {useCopilotStore} from '@/pages/platform/copilot/stores/useCopilotStore';
 import {useAnalytics} from '@/shared/hooks/useAnalytics';
 import {useHelpHub} from '@/shared/hooks/useHelpHub';
@@ -52,7 +53,7 @@ const automationNavigation: NavigationType[] = [
         name: 'Project Instances',
     },
     {
-        href: '/automation/api-platform/api-collections',
+        href: '/automation/api-platform',
         icon: LandmarkIcon,
         name: 'API Collections',
     },
@@ -230,8 +231,10 @@ function App() {
                     <Outlet />
 
                     {ai.enabled && showCopilot && (
-                        <aside className="border-l">
-                            <CopilotPanel />
+                        <aside className="border-l border-l-border/70">
+                            <CopilotRuntimeProvider>
+                                <CopilotPanel />
+                            </CopilotRuntimeProvider>
                         </aside>
                     )}
                 </div>

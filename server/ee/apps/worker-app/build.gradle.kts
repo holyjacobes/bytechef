@@ -92,6 +92,7 @@ dependencies {
     implementation(project(":server:libs:modules:components:jira"))
     implementation(project(":server:libs:modules:components:jotform"))
     implementation(project(":server:libs:modules:components:json-file"))
+    implementation(project(":server:libs:modules:components:json-helper"))
     implementation(project(":server:libs:modules:components:keap"))
     implementation(project(":server:libs:modules:components:llm:amazon-bedrock"))
     implementation(project(":server:libs:modules:components:llm:anthropic"))
@@ -155,6 +156,7 @@ dependencies {
     implementation(project(":server:libs:modules:components:xml-file"))
     implementation(project(":server:libs:modules:components:xml-helper"))
     implementation(project(":server:libs:modules:components:zendesk-sell"))
+    implementation(project(":server:libs:modules:components:zeplin"))
     implementation(project(":server:libs:modules:components:zoho:zoho-crm"))
 
     runtimeOnly("org.springframework.boot:spring-boot-starter-amqp")

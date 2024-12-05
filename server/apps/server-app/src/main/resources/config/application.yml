@@ -11,21 +11,21 @@ springdoc:
 
 info:
   ai:
-    enabled: ${bytechef.ai.enabled}
+    enabled: ${bytechef.ai.enabled:false}
   analytics:
-    enabled: ${bytechef.analytics.enabled}
+    enabled: ${bytechef.analytics.enabled:false}
     postHog:
-      apiKey: ${bytechef.analytics.post-hog.api-key}
-      host: ${bytechef.analytics.post-hog.host}
+      apiKey: ${bytechef.analytics.postHog.apiKey:}
+      host: ${bytechef.analytics.postHog.host:}
   application:
-    edition: ${bytechef.edition}
+    edition: ${bytechef.edition:}
   featureFlags: ${bytechef.featureFlags}
   helpHub:
-    enabled: ${bytechef.helpHub.enabled}
+    enabled: ${bytechef.helpHub.enabled:false}
     commandBar:
-      orgId: ${bytechef.helpHub.command-bar.orgId}
+      orgId: ${bytechef.helpHub.commandBar.orgId:}
   signUp:
-    activationRequired: ${bytechef.signUp.activationRequired}
+    activationRequired: ${bytechef.signUp.activationRequired:false}
     enabled: ${bytechef.signUp.enabled}
 
 management:
@@ -35,8 +35,7 @@ management:
         include: '*'
   endpoint:
     health:
-      show-details: when_authorized
-      roles: 'ROLE_ADMIN'
+      showDetails: always
       probes:
         enabled: true
       group:
@@ -128,9 +127,6 @@ spring:
             required: ${bytechef.mail.smtp.starttls.required:false}
   liquibase:
     contexts: mono, #spring.profiles.active#
-  output:
-    ansi:
-      console-available: true
   profiles:
     active: #spring.profiles.active#
     group:

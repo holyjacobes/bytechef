@@ -4,7 +4,14 @@ module.exports = {
     content: ['./src/**/*.{js,ts,jsx,tsx}', './*.html'],
     darkMode: 'class',
     important: true,
-    plugins: [require('@tailwindcss/forms'), require('tailwindcss-animate')],
+    plugins: [
+        require('@tailwindcss/forms'),
+        require('tailwindcss-animate'),
+        require('@assistant-ui/react/tailwindcss')({
+            components: ['thread'],
+            shadcn: true,
+        }),
+    ],
     theme: {
         container: {
             center: 'true',
@@ -61,6 +68,7 @@ module.exports = {
                     DEFAULT: 'hsl(var(--secondary))',
                     foreground: 'hsl(var(--secondary-foreground))',
                 },
+                skeleton: 'hsl(var(--skeleton))',
                 success: {
                     DEFAULT: 'hsl(var(--success))',
                     foreground: 'hsl(var(--success-foreground))',
@@ -105,6 +113,8 @@ module.exports = {
                 'placeholder-node-position': '22px',
             },
             maxHeight: {
+                'connection-dialog-height': '600px',
+                'integration-instance-configuration-dialog-height': '600px',
                 'project-instance-dialog-height': '600px',
                 'select-content-available-height': 'var(--radix-select-content-available-height)',
                 'select-content-available-height-1/2': 'calc(var(--radix-select-content-available-height) / 2)',

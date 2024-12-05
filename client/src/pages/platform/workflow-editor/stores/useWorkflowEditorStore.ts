@@ -7,20 +7,23 @@ interface WorkflowEditorI {
     showBottomPanel: boolean;
     setShowBottomPanelOpen: (showBottomPanel: boolean) => void;
 
+    showEditWorkflowDialog: boolean;
+    setShowEditWorkflowDialog: (showEditWorkflowDialog: boolean) => void;
+
     showPropertyCodeEditorSheet: boolean;
     setShowPropertyCodeEditorSheet: (showPropertyCodeEditorSheet: boolean) => void;
 
-    showEditWorkflowDialog: boolean;
-    setShowEditWorkflowDialog: (showEditWorkflowDialog: boolean) => void;
+    showPropertyJsonSchemaBuilder: boolean;
+    setShowPropertyJsonSchemaBuilder: (showPropertyJsonSchemaBuilder: boolean) => void;
 
     showWorkflowCodeEditorSheet: boolean;
     setShowWorkflowCodeEditorSheet: (showWorkflowCodeEditorSheet: boolean) => void;
 
-    workflowTestExecution?: WorkflowTestExecution;
-    setWorkflowTestExecution: (workflowTestExecution?: WorkflowTestExecution) => void;
-
     workflowIsRunning: boolean;
     setWorkflowIsRunning: (workflowIsRunning: boolean) => void;
+
+    workflowTestExecution?: WorkflowTestExecution;
+    setWorkflowTestExecution: (workflowTestExecution?: WorkflowTestExecution) => void;
 }
 
 const useWorkflowEditorStore = create<WorkflowEditorI>()(
@@ -32,16 +35,22 @@ const useWorkflowEditorStore = create<WorkflowEditorI>()(
                     showBottomPanel,
                 })),
 
+            showEditWorkflowDialog: false,
+            setShowEditWorkflowDialog: (showEditWorkflowDialog) =>
+                set(() => ({
+                    showEditWorkflowDialog: showEditWorkflowDialog,
+                })),
+
             showPropertyCodeEditorSheet: false,
             setShowPropertyCodeEditorSheet: (showPropertyCodeEditorSheet) =>
                 set(() => ({
                     showPropertyCodeEditorSheet,
                 })),
 
-            showEditWorkflowDialog: false,
-            setShowEditWorkflowDialog: (showEditWorkflowDialog) =>
+            showPropertyJsonSchemaBuilder: false,
+            setShowPropertyJsonSchemaBuilder: (showPropertyJsonSchemaBuilder) =>
                 set(() => ({
-                    showEditWorkflowDialog: showEditWorkflowDialog,
+                    showPropertyJsonSchemaBuilder,
                 })),
 
             showWorkflowCodeEditorSheet: false,
@@ -50,16 +59,16 @@ const useWorkflowEditorStore = create<WorkflowEditorI>()(
                     showWorkflowCodeEditorSheet,
                 })),
 
-            workflowTestExecution: undefined,
-            setWorkflowTestExecution: (workflowTestExecution?: WorkflowTestExecution) =>
-                set(() => ({
-                    workflowTestExecution: workflowTestExecution,
-                })),
-
             workflowIsRunning: false,
             setWorkflowIsRunning: (workflowIsRunning) =>
                 set(() => ({
                     workflowIsRunning: workflowIsRunning,
+                })),
+
+            workflowTestExecution: undefined,
+            setWorkflowTestExecution: (workflowTestExecution?: WorkflowTestExecution) =>
+                set(() => ({
+                    workflowTestExecution: workflowTestExecution,
                 })),
         }),
         {

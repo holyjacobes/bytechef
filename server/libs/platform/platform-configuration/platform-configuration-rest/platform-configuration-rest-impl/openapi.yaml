@@ -1381,11 +1381,12 @@ components:
       - "DATE_TIME"
       - "EMAIL"
       - "INTEGER"
+      - "JSON_SCHEMA_BUILDER"
       - "FILE_ENTRY"
-      - "OBJECT_BUILDER"
       - "MULTI_SELECT"
       - "NUMBER"
       - "NULL"
+      - "OBJECT_BUILDER"
       - "PASSWORD"
       - "PHONE"
       - "RICH_TEXT"
@@ -2036,10 +2037,6 @@ components:
           type: "integer"
           format: "int32"
           readOnly: true
-#        manualTrigger:
-#          description: "Does this workflow have a manual trigger or not"
-#          type: "boolean"
-#          readOnly: true
         workflowTaskComponentNames:
           type: "array"
           items:

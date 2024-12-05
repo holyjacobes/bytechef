@@ -27,6 +27,8 @@ import static com.bytechef.component.google.calendar.constant.GoogleCalendarCons
 import static com.bytechef.component.google.calendar.constant.GoogleCalendarConstants.EVENT_ID;
 import static com.bytechef.component.google.calendar.constant.GoogleCalendarConstants.EVENT_OUTPUT_PROPERTY;
 import static com.bytechef.component.google.calendar.util.GoogleCalendarUtils.createCustomEvent;
+import static com.bytechef.component.google.calendar.util.GoogleCalendarUtils.getEvent;
+import static com.bytechef.component.google.calendar.util.GoogleCalendarUtils.updateEvent;
 
 import com.bytechef.component.definition.ActionContext;
 import com.bytechef.component.definition.ComponentDsl.ModifiableActionDefinition;
@@ -34,8 +36,6 @@ import com.bytechef.component.definition.OptionsDataSource.ActionOptionsFunction
 import com.bytechef.component.definition.Parameters;
 import com.bytechef.component.google.calendar.util.GoogleCalendarUtils;
 import com.bytechef.component.google.calendar.util.GoogleCalendarUtils.CustomEvent;
-import com.bytechef.google.commons.GoogleServices;
-import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
 import java.io.IOException;
@@ -74,30 +74,24 @@ public class GoogleCalendarAddAttendeesToEventAction {
     public static CustomEvent perform(
         Parameters inputParameters, Parameters connectionParameters, ActionContext actionContext) throws IOException {
 
-        Calendar calendar = GoogleServices.getCalendar(connectionParameters);
-
-        String calendarId = inputParameters.getRequiredString(CALENDAR_ID);
-        String eventId = inputParameters.getRequiredString(EVENT_ID);
-
-        Event event = calendar
-            .events()
-            .get(calendarId, eventId)
-            .execute();
+        Event event = getEvent(inputParameters, connectionParameters);
 
         List<String> newAttendees = inputParameters.getList(ATTENDEES, String.class, List.of());
 
-        event.getAttendees()
-            .addAll(
-                newAttendees
-                    .stream()
-                    .map(attendee -> new EventAttendee().setEmail(attendee))
-                    .toList());
+        List<EventAttendee> newEventAttendees = newAttendees
+            .stream()
+            .map(attendee -> new EventAttendee().setEmail(attendee))
+            .toList();
 
-        Event updatedEvent = calendar
-            .events()
-            .update(calendarId, eventId, event)
-            .execute();
+        List<EventAttendee> attendees = event.getAttendees();
 
-        return createCustomEvent(updatedEvent);
+        if (attendees == null) {
+            event.setAttendees(newEventAttendees);
+        } else {
+            event.getAttendees()
+                .addAll(newEventAttendees);
+        }
+
+        return createCustomEvent(updateEvent(inputParameters, connectionParameters, event));
     }
 }

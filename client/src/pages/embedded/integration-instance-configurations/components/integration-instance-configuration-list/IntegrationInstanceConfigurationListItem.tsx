@@ -8,7 +8,6 @@ import IntegrationInstanceConfigurationListItemDropdownMenu from '@/pages/embedd
 import {useIntegrationInstanceConfigurationsEnabledStore} from '@/pages/embedded/integration-instance-configurations/stores/useIntegrationInstanceConfigurationsEnabledStore';
 import {useAnalytics} from '@/shared/hooks/useAnalytics';
 import {IntegrationInstanceConfiguration, Tag} from '@/shared/middleware/embedded/configuration';
-import {ComponentDefinitionBasic} from '@/shared/middleware/platform/configuration';
 import {
     useDeleteIntegrationInstanceConfigurationMutation,
     useEnableIntegrationInstanceConfigurationMutation,
@@ -25,13 +24,11 @@ import TagList from '../../../../../components/TagList';
 import IntegrationInstanceConfigurationDialog from '../integration-instance-configuration-dialog/IntegrationInstanceConfigurationDialog';
 
 interface IntegrationInstanceConfigurationListItemProps {
-    componentDefinition: ComponentDefinitionBasic;
     integrationInstanceConfiguration: IntegrationInstanceConfiguration;
     remainingTags?: Tag[];
 }
 
 const IntegrationInstanceConfigurationListItem = ({
-    componentDefinition,
     integrationInstanceConfiguration,
     remainingTags,
 }: IntegrationInstanceConfigurationListItemProps) => {
@@ -99,13 +96,16 @@ const IntegrationInstanceConfigurationListItem = ({
     return (
         <>
             <div className="flex w-full items-center justify-between rounded-md px-2 hover:bg-gray-50">
-                <div className="flex flex-1 items-center border-b border-muted py-5 group-data-[state='open']:border-none">
+                <div className="flex flex-1 items-center py-5 group-data-[state='open']:border-none">
                     <div className="flex-1">
                         <div className="flex items-center justify-between">
                             <div className="flex w-full items-center gap-2">
                                 <div className="flex items-center gap-1">
-                                    {componentDefinition?.icon && (
-                                        <InlineSVG className="size-5 flex-none" src={componentDefinition.icon} />
+                                    {integrationInstanceConfiguration?.integration?.icon && (
+                                        <InlineSVG
+                                            className="size-5 flex-none"
+                                            src={integrationInstanceConfiguration?.integration.icon}
+                                        />
                                     )}
 
                                     <span className="text-base font-semibold text-gray-900">
@@ -162,7 +162,9 @@ const IntegrationInstanceConfigurationListItem = ({
                     <div className="flex items-center justify-end gap-x-6">
                         <Badge variant="secondary">V{integrationInstanceConfiguration.integrationVersion}</Badge>
 
-                        <Badge variant="secondary">{integrationInstanceConfiguration.environment}</Badge>
+                        <div className="flex min-w-28 justify-end">
+                            <Badge variant="secondary">{integrationInstanceConfiguration.environment}</Badge>
+                        </div>
 
                         <div className="flex min-w-52 flex-col items-end gap-y-4">
                             <div className="flex items-center">

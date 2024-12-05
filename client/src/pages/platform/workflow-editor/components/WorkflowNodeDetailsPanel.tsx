@@ -1,17 +1,20 @@
 import LoadingIcon from '@/components/LoadingIcon';
 import {Button} from '@/components/ui/button';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {Skeleton} from '@/components/ui/skeleton';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
 import Properties from '@/pages/platform/workflow-editor/components/Properties/Properties';
 import DataStreamComponentsTab from '@/pages/platform/workflow-editor/components/node-details-tabs/DataStreamComponentsTab';
 import {
     ActionDefinitionApi,
+    ComponentDefinition,
     ComponentDefinitionBasic,
     GetComponentActionDefinitionRequest,
     GetComponentTriggerDefinitionRequest,
     TriggerDefinitionApi,
     WorkflowConnection,
     WorkflowNodeOutput,
+    WorkflowTask,
 } from '@/shared/middleware/platform/configuration';
 import {useDeleteWorkflowNodeTestOutputMutation} from '@/shared/mutations/platform/workflowNodeTestOutputs.mutations';
 import {
@@ -31,6 +34,7 @@ import {useGetWorkflowTestConfigurationConnectionsQuery} from '@/shared/queries/
 import {
     ComponentPropertiesType,
     DataPillType,
+    NodeDataType,
     PropertyAllType,
     UpdateWorkflowMutationType,
     WorkflowDefinitionType,
@@ -48,6 +52,7 @@ import getAllTaskNames from '../utils/getAllTaskNames';
 import getDataPillsFromProperties from '../utils/getDataPillsFromProperties';
 import getParametersWithDefaultValues from '../utils/getParametersWithDefaultValues';
 import saveWorkflowDefinition from '../utils/saveWorkflowDefinition';
+import updateConditionSubtask from '../utils/updateRootConditionNode';
 import CurrentOperationSelect from './CurrentOperationSelect';
 import ConnectionTab from './node-details-tabs/ConnectionTab';
 import DescriptionTab from './node-details-tabs/DescriptionTab';
@@ -94,7 +99,7 @@ const WorkflowNodeDetailsPanel = ({
     const {currentComponent, currentNode, setCurrentComponent, setCurrentNode, workflowNodeDetailsPanelOpen} =
         useWorkflowNodeDetailsPanelStore();
 
-    const {componentActions, setDataPills, workflow} = useWorkflowDataStore();
+    const {componentActions, nodes, setDataPills, workflow} = useWorkflowDataStore();
 
     const {data: currentComponentDefinition} = useGetComponentDefinitionQuery(
         {
@@ -267,19 +272,72 @@ const WorkflowNodeDetailsPanel = ({
 
         const {componentName, description, label, workflowNodeName} = currentComponent;
 
+        let nodeData = {
+            componentName,
+            description,
+            label,
+            name: workflowNodeName || currentNode?.name || '',
+            operationName: newOperationName,
+            parameters: getParametersWithDefaultValues({
+                properties: operationData.properties as Array<PropertyAllType>,
+            }),
+            trigger: currentNode?.trigger,
+            type: `${componentName}/v${currentComponentDefinition.version}/${newOperationName}`,
+        };
+
+        if (currentNode?.conditionData) {
+            const parentConditionNode = nodes.find(
+                (node) => node.data.name === currentNode?.conditionData?.conditionId
+            );
+
+            if (!parentConditionNode) {
+                return;
+            }
+
+            const conditionCase = currentNode.conditionData.conditionCase;
+            const conditionParameters: Array<WorkflowTask> = parentConditionNode.data.parameters[conditionCase];
+
+            if (conditionParameters) {
+                const taskIndex = conditionParameters.findIndex((subtask) => subtask.name === currentNode.name);
+
+                if (taskIndex !== -1) {
+                    conditionParameters[taskIndex] = {
+                        ...conditionParameters[taskIndex],
+                        type: `${componentName}/v${currentComponentDefinition.version}/${newOperationName}`,
+                    };
+
+                    if (!workflow.definition) {
+                        return;
+                    }
+
+                    const tasks = JSON.parse(workflow.definition).tasks;
+
+                    const updatedParentConditionTask = workflow.tasks?.find(
+                        (task) => task.name === currentNode.conditionData?.conditionId
+                    );
+
+                    if (!updatedParentConditionTask) {
+                        return;
+                    }
+
+                    const updatedRootConditionNode = updateConditionSubtask({
+                        conditionCase,
+                        conditionId: currentNode.conditionData.conditionId,
+                        nodeIndex: taskIndex,
+                        nodes,
+                        tasks,
+                        updatedParentConditionNodeData: parentConditionNode.data,
+                        updatedParentConditionTask,
+                        workflow,
+                    });
+
+                    nodeData = updatedRootConditionNode.data ?? (updatedRootConditionNode as NodeDataType);
+                }
+            }
+        }
+
         saveWorkflowDefinition({
-            nodeData: {
-                componentName,
-                description,
-                label,
-                name: workflowNodeName || currentNode?.name || '',
-                operationName: newOperationName,
-                parameters: getParametersWithDefaultValues({
-                    properties: operationData.properties as Array<PropertyAllType>,
-                }),
-                trigger: currentNode?.trigger,
-                type: `${componentName}/v${currentComponentDefinition.version}/${newOperationName}`,
-            },
+            nodeData,
             onSuccess: () => {
                 setCurrentComponent({
                     ...currentComponent,
@@ -293,6 +351,7 @@ const WorkflowNodeDetailsPanel = ({
                 });
             },
             queryClient,
+            subtask: !!currentNode?.conditionData,
             updateWorkflowMutation,
             workflow,
         });
@@ -446,6 +505,18 @@ const WorkflowNodeDetailsPanel = ({
     }, [componentActions, currentNode?.name]);
 
     const currentTaskData = currentComponentDefinition || currentTaskDispatcherDefinition;
+    const currentOperationFetched = currentActionFetched || currentTriggerFetched;
+
+    const operationDataMissing =
+        currentComponent?.operationName && (!matchingOperation?.name || !currentOperationFetched);
+
+    const tabDataExists =
+        (!currentNode?.trigger && !currentNode?.taskDispatcher && currentActionFetched) ||
+        currentNode?.taskDispatcher ||
+        (currentNode?.trigger &&
+            currentTriggerFetched &&
+            nodeTabs.length > 1 &&
+            currentNode.componentName !== 'manual');
 
     if (!workflowNodeDetailsPanelOpen || !currentNode?.name || !currentTaskData) {
         return <></>;
@@ -453,7 +524,7 @@ const WorkflowNodeDetailsPanel = ({
 
     return (
         <div
-            className="absolute inset-y-4 right-4 z-10 w-screen max-w-workflow-node-details-panel-width overflow-hidden rounded-xl border border-muted bg-white shadow-lg"
+            className="absolute inset-y-4 right-4 z-10 w-screen max-w-workflow-node-details-panel-width overflow-hidden rounded-xl border border-border/50 bg-white shadow-lg"
             key={currentNode?.name}
         >
             <div className="flex h-full flex-col divide-y divide-gray-100 bg-white">
@@ -496,44 +567,64 @@ const WorkflowNodeDetailsPanel = ({
                 </header>
 
                 <main className="flex h-full flex-col">
-                    <CurrentOperationSelect
-                        description={
-                            currentNode?.trigger
-                                ? currentTriggerDefinition?.description
-                                : currentActionDefinition?.description
-                        }
-                        handleValueChange={handleOperationSelectChange}
-                        operations={
-                            (currentNode?.trigger
-                                ? currentComponentDefinition?.triggers
-                                : currentComponentDefinition?.actions)!
-                        }
-                        triggerSelect={currentNode?.trigger}
-                        value={currentOperationName}
-                    />
+                    {operationDataMissing && (
+                        <div className="flex flex-col border-b border-muted p-4">
+                            <span className="text-sm leading-6">Actions</span>
 
-                    {((!currentNode?.trigger && !currentNode?.taskDispatcher && currentActionFetched) ||
-                        currentNode?.taskDispatcher ||
-                        (currentNode?.trigger && currentTriggerFetched)) &&
-                        nodeTabs.length > 1 && (
-                            <div className="flex justify-center">
-                                {nodeTabs.map((tab) => (
-                                    <Button
-                                        className={twMerge(
-                                            'grow justify-center whitespace-nowrap rounded-none border-0 border-b border-gray-200 bg-white text-sm font-medium py-5 text-gray-500 hover:border-blue-500 hover:text-blue-500 focus:border-blue-500 focus:text-blue-500 focus:outline-none',
-                                            activeTab === tab?.name &&
-                                                'border-blue-500 text-blue-500 hover:text-blue-500'
-                                        )}
-                                        key={tab.name}
-                                        name={tab.name}
-                                        onClick={() => setActiveTab(tab.name)}
-                                        variant="ghost"
-                                    >
-                                        {tab.label}
-                                    </Button>
-                                ))}
-                            </div>
+                            <Skeleton className="h-9 w-full" />
+                        </div>
+                    )}
+
+                    {(!!(currentTaskData as ComponentDefinition).actions?.length ||
+                        !!(currentTaskData as ComponentDefinition).triggers?.length) &&
+                        !operationDataMissing && (
+                            <CurrentOperationSelect
+                                description={
+                                    currentNode?.trigger
+                                        ? currentTriggerDefinition?.description
+                                        : currentActionDefinition?.description
+                                }
+                                handleValueChange={handleOperationSelectChange}
+                                operations={
+                                    (currentNode?.trigger
+                                        ? currentComponentDefinition?.triggers
+                                        : currentComponentDefinition?.actions)!
+                                }
+                                triggerSelect={currentNode?.trigger}
+                                value={currentOperationName}
+                            />
                         )}
+
+                    {tabDataExists && (
+                        <div className="flex justify-center">
+                            {nodeTabs.map((tab) => (
+                                <Button
+                                    className={twMerge(
+                                        'grow justify-center whitespace-nowrap rounded-none border-0 border-b border-gray-200 bg-white py-5 text-sm font-medium text-gray-500 hover:border-blue-500 hover:text-blue-500 focus:border-blue-500 focus:text-blue-500 focus:outline-none',
+                                        activeTab === tab?.name && 'border-blue-500 text-blue-500 hover:text-blue-500'
+                                    )}
+                                    key={tab.name}
+                                    name={tab.name}
+                                    onClick={() => setActiveTab(tab.name)}
+                                    variant="ghost"
+                                >
+                                    {tab.label}
+                                </Button>
+                            ))}
+                        </div>
+                    )}
+
+                    {currentNode.componentName !== 'manual' && !tabDataExists && (
+                        <div className="flex justify-center space-x-2 border-b border-gray-200 p-2">
+                            <Skeleton className="h-6 w-1/4" />
+
+                            <Skeleton className="h-6 w-1/4" />
+
+                            <Skeleton className="h-6 w-1/4" />
+
+                            <Skeleton className="h-6 w-1/4" />
+                        </div>
+                    )}
 
                     <div className="relative h-full overflow-y-scroll">
                         {currentTaskData && (
@@ -563,6 +654,7 @@ const WorkflowNodeDetailsPanel = ({
 
                                 {activeTab === 'properties' &&
                                     currentTaskData &&
+                                    !operationDataMissing &&
                                     (currentOperationProperties?.length ? (
                                         <Properties
                                             customClassName="p-4"

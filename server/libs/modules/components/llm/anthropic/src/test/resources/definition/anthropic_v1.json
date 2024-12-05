@@ -13,6 +13,55 @@
   "resources" : null,
   "version" : 1,
   "title" : "Anthropic",
+  "connection" : {
+    "authorizations" : [ {
+      "detectOn" : null,
+      "description" : null,
+      "name" : "bearer_token",
+      "properties" : [ {
+        "advancedOption" : null,
+        "description" : null,
+        "displayCondition" : null,
+        "expressionEnabled" : null,
+        "hidden" : null,
+        "metadata" : { },
+        "required" : true,
+        "name" : "token",
+        "type" : "STRING",
+        "defaultValue" : null,
+        "exampleValue" : null,
+        "label" : "Token",
+        "placeholder" : null,
+        "controlType" : "TEXT",
+        "languageId" : null,
+        "maxLength" : null,
+        "minLength" : null,
+        "options" : null,
+        "optionsDataSource" : null
+      } ],
+      "refreshOn" : null,
+      "title" : "Bearer Token",
+      "type" : "BEARER_TOKEN",
+      "acquire" : null,
+      "authorizationUrl" : null,
+      "clientSecret" : null,
+      "refreshToken" : null,
+      "apply" : null,
+      "clientId" : null,
+      "pkce" : null,
+      "refresh" : null,
+      "refreshUrl" : null,
+      "scopes" : null,
+      "tokenUrl" : null,
+      "oauth2AuthorizationExtraQueryParameters" : null,
+      "authorizationCallback" : null
+    } ],
+    "properties" : null,
+    "version" : 1,
+    "authorizationRequired" : null,
+    "baseUri" : { },
+    "test" : null
+  },
   "actions" : [ {
     "batch" : null,
     "deprecated" : null,
@@ -54,16 +103,16 @@
         "value" : "claude-3-haiku-20240307"
       }, {
         "description" : null,
-        "label" : "claude-3-5-sonnet-20240620",
-        "value" : "claude-3-5-sonnet-20240620"
-      }, {
-        "description" : null,
         "label" : "claude-3-opus-20240229",
         "value" : "claude-3-opus-20240229"
       }, {
         "description" : null,
         "label" : "claude-2.0",
         "value" : "claude-2.0"
+      }, {
+        "description" : null,
+        "label" : "claude-3-5-sonnet-20241022",
+        "value" : "claude-3-5-sonnet-20241022"
       }, {
         "description" : null,
         "label" : "claude-3-sonnet-20240229",
@@ -162,15 +211,15 @@
           } ],
           "optionsDataSource" : null
         } ],
-        "controlType" : "OBJECT_BUILDER",
-        "optionsDataSource" : null
+        "optionsDataSource" : null,
+        "controlType" : "OBJECT_BUILDER"
       } ],
       "maxItems" : null,
       "minItems" : null,
       "multipleValues" : null,
       "options" : null,
-      "controlType" : "ARRAY_BUILDER",
-      "optionsDataSource" : null
+      "optionsDataSource" : null,
+      "controlType" : "ARRAY_BUILDER"
     }, {
       "advancedOption" : null,
       "description" : "The maximum number of tokens to generate in the chat completion.",
@@ -188,8 +237,8 @@
       "maxValue" : null,
       "minValue" : null,
       "options" : null,
-      "controlType" : "INTEGER",
-      "optionsDataSource" : null
+      "optionsDataSource" : null,
+      "controlType" : "INTEGER"
     }, {
       "advancedOption" : null,
       "description" : "In which format do you want the response to be in?",
@@ -212,14 +261,30 @@
         "value" : 0
       }, {
         "description" : "JSON response with key-value pairs.",
-        "label" : "Object",
+        "label" : "JSON",
         "value" : 1
-      }, {
-        "description" : "JSON response that is a list.",
-        "label" : "List",
-        "value" : 2
       } ],
-      "controlType" : "SELECT",
+      "optionsDataSource" : null,
+      "controlType" : "SELECT"
+    }, {
+      "advancedOption" : null,
+      "description" : "Define the JSON schema for the response.",
+      "displayCondition" : "responseFormat != 0",
+      "expressionEnabled" : null,
+      "hidden" : null,
+      "metadata" : { },
+      "required" : false,
+      "name" : "responseSchema",
+      "type" : "STRING",
+      "defaultValue" : null,
+      "exampleValue" : null,
+      "label" : "Response Schema",
+      "placeholder" : null,
+      "controlType" : "JSON_SCHEMA_BUILDER",
+      "languageId" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "options" : null,
       "optionsDataSource" : null
     }, {
       "advancedOption" : true,
@@ -241,8 +306,8 @@
       "minValue" : 0.0,
       "numberPrecision" : null,
       "options" : null,
-      "controlType" : "NUMBER",
-      "optionsDataSource" : null
+      "optionsDataSource" : null,
+      "controlType" : "NUMBER"
     }, {
       "advancedOption" : true,
       "description" : "An alternative to sampling with temperature, called nucleus sampling,  where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.",
@@ -263,8 +328,8 @@
       "minValue" : null,
       "numberPrecision" : null,
       "options" : null,
-      "controlType" : "NUMBER",
-      "optionsDataSource" : null
+      "optionsDataSource" : null,
+      "controlType" : "NUMBER"
     }, {
       "advancedOption" : true,
       "description" : "Specify the number of token choices the generative uses to generate the next token.",
@@ -282,8 +347,8 @@
       "maxValue" : null,
       "minValue" : null,
       "options" : null,
-      "controlType" : "INTEGER",
-      "optionsDataSource" : null
+      "optionsDataSource" : null,
+      "controlType" : "INTEGER"
     }, {
       "advancedOption" : true,
       "description" : "Up to 4 sequences where the API will stop generating further tokens.",
@@ -323,8 +388,8 @@
       "minItems" : null,
       "multipleValues" : null,
       "options" : null,
-      "controlType" : "ARRAY_BUILDER",
-      "optionsDataSource" : null
+      "optionsDataSource" : null,
+      "controlType" : "ARRAY_BUILDER"
     }, {
       "advancedOption" : true,
       "description" : "Enter the names of functions you want to use.",
@@ -364,64 +429,15 @@
       "minItems" : null,
       "multipleValues" : null,
       "options" : null,
-      "controlType" : "ARRAY_BUILDER",
-      "optionsDataSource" : null
+      "optionsDataSource" : null,
+      "controlType" : "ARRAY_BUILDER"
     } ],
     "title" : "Ask",
     "perform" : { },
     "processErrorResponse" : null,
     "workflowNodeDescription" : null
   } ],
-  "dataStream" : null,
   "triggers" : null,
-  "unifiedApi" : null,
-  "connection" : {
-    "authorizations" : [ {
-      "detectOn" : null,
-      "description" : null,
-      "name" : "bearer_token",
-      "properties" : [ {
-        "advancedOption" : null,
-        "description" : null,
-        "displayCondition" : null,
-        "expressionEnabled" : null,
-        "hidden" : null,
-        "metadata" : { },
-        "required" : true,
-        "name" : "token",
-        "type" : "STRING",
-        "defaultValue" : null,
-        "exampleValue" : null,
-        "label" : "Token",
-        "placeholder" : null,
-        "controlType" : "TEXT",
-        "languageId" : null,
-        "maxLength" : null,
-        "minLength" : null,
-        "options" : null,
-        "optionsDataSource" : null
-      } ],
-      "refreshOn" : null,
-      "title" : "Bearer Token",
-      "type" : "BEARER_TOKEN",
-      "acquire" : null,
-      "apply" : null,
-      "authorizationCallback" : null,
-      "authorizationUrl" : null,
-      "clientId" : null,
-      "clientSecret" : null,
-      "oauth2AuthorizationExtraQueryParameters" : null,
-      "pkce" : null,
-      "refresh" : null,
-      "refreshUrl" : null,
-      "scopes" : null,
-      "refreshToken" : null,
-      "tokenUrl" : null
-    } ],
-    "properties" : null,
-    "version" : 1,
-    "authorizationRequired" : null,
-    "baseUri" : { },
-    "test" : null
-  }
+  "dataStream" : null,
+  "unifiedApi" : null
 }

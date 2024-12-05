@@ -72,6 +72,12 @@ export interface Integration {
      */
     description?: string;
     /**
+     * The icon.
+     * @type {string}
+     * @memberof Integration
+     */
+    icon?: string;
+    /**
      * The id of an integration.
      * @type {number}
      * @memberof Integration
@@ -165,6 +171,7 @@ export function IntegrationFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'createdDate': json['createdDate'] == null ? undefined : (new Date(json['createdDate'])),
         'description': json['description'] == null ? undefined : json['description'],
+        'icon': json['icon'] == null ? undefined : json['icon'],
         'id': json['id'] == null ? undefined : json['id'],
         'lastModifiedBy': json['lastModifiedBy'] == null ? undefined : json['lastModifiedBy'],
         'lastModifiedDate': json['lastModifiedDate'] == null ? undefined : (new Date(json['lastModifiedDate'])),
@@ -179,11 +186,11 @@ export function IntegrationFromJSONTyped(json: any, ignoreDiscriminator: boolean
     };
 }
 
-  export function IntegrationToJSON(json: any): Integration {
-      return IntegrationToJSONTyped(json, false);
-  }
+export function IntegrationToJSON(json: any): Integration {
+    return IntegrationToJSONTyped(json, false);
+}
 
-  export function IntegrationToJSONTyped(value?: Omit<Integration, 'createdBy'|'createdDate'|'id'|'lastModifiedBy'|'lastModifiedDate'|'lastPublishedDate'|'lastIntegrationVersion'> | null, ignoreDiscriminator: boolean = false): any {
+export function IntegrationToJSONTyped(value?: Omit<Integration, 'createdBy'|'createdDate'|'id'|'lastModifiedBy'|'lastModifiedDate'|'lastPublishedDate'|'lastIntegrationVersion'> | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }
@@ -193,6 +200,7 @@ export function IntegrationFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'allowMultipleInstances': value['allowMultipleInstances'],
         'componentName': value['componentName'],
         'description': value['description'],
+        'icon': value['icon'],
         'lastStatus': IntegrationStatusToJSON(value['lastStatus']),
         'name': value['name'],
         'category': CategoryToJSON(value['category']),

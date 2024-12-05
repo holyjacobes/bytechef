@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.bytechef.component.definition.ActionContext;
 import com.bytechef.component.definition.Context;
 import com.bytechef.component.definition.Context.Http;
 import com.bytechef.component.definition.TypeReference;
@@ -34,9 +35,10 @@ import org.junit.jupiter.api.Test;
  */
 class MicrosoftOutlook365UtilsTest {
 
+    private final ActionContext mockedActionContext = mock(ActionContext.class);
+    private final Context mockedContext = mock(Context.class);
     private final Http.Executor mockedExecutor = mock(Http.Executor.class);
     private final Http.Response mockedResponse = mock(Http.Response.class);
-    private final Context mockedContext = mock(Context.class);
 
     @Test
     void testGetItemsFromNextPage() {
@@ -56,5 +58,21 @@ class MicrosoftOutlook365UtilsTest {
         List<Map<?, ?>> result = MicrosoftOutlook365Utils.getItemsFromNextPage("link", mockedContext);
 
         assertEquals(items, result);
+    }
+
+    @Test
+    void testGetMailboxTImeZone() {
+        when(mockedActionContext.http(any()))
+            .thenReturn(mockedExecutor);
+        when(mockedExecutor.configuration(any()))
+            .thenReturn(mockedExecutor);
+        when(mockedExecutor.execute())
+            .thenReturn(mockedResponse);
+        when(mockedResponse.getBody(any(TypeReference.class)))
+            .thenReturn(Map.of(VALUE, "zone"));
+
+        String result = MicrosoftOutlook365Utils.getMailboxTimeZone(mockedActionContext);
+
+        assertEquals("zone", result);
     }
 }

@@ -12,7 +12,8 @@ import {twMerge} from 'tailwind-merge';
 interface PropertyCodeEditorProps {
     defaultValue?: string;
     description?: string;
-    error?: string | undefined;
+    error?: boolean;
+    errorMessage?: string;
     label?: string;
     language: string;
     leadingIcon?: ReactNode;
@@ -30,6 +31,7 @@ const PropertyCodeEditor = forwardRef<HTMLButtonElement, PropertyCodeEditorProps
             defaultValue,
             description,
             error,
+            errorMessage,
             label,
             language,
             leadingIcon,
@@ -42,7 +44,7 @@ const PropertyCodeEditor = forwardRef<HTMLButtonElement, PropertyCodeEditorProps
         },
         ref
     ) => {
-        const {setShowPropertyCodeEditorSheet, showPropertyCodeEditorSheet} = useWorkflowEditorStore();
+        const {setShowPropertyJsonSchemaBuilder, showPropertyJsonSchemaBuilder} = useWorkflowEditorStore();
 
         return (
             <>
@@ -68,7 +70,7 @@ const PropertyCodeEditor = forwardRef<HTMLButtonElement, PropertyCodeEditorProps
                     )}
 
                     <div className={twMerge([label && 'mt-1', leadingIcon && 'relative'])}>
-                        <div className={twMerge(leadingIcon && 'relative rounded-md flex w-full')}>
+                        <div className={twMerge(leadingIcon && 'relative flex w-full rounded-md')}>
                             {leadingIcon && (
                                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center rounded-l-md border border-input bg-gray-100 px-3">
                                     {leadingIcon}
@@ -77,7 +79,7 @@ const PropertyCodeEditor = forwardRef<HTMLButtonElement, PropertyCodeEditorProps
 
                             <Button
                                 className="ml-10 flex-1 rounded-l-none"
-                                onClick={() => setShowPropertyCodeEditorSheet(true)}
+                                onClick={() => setShowPropertyJsonSchemaBuilder(true)}
                                 ref={ref}
                                 variant="outline"
                             >
@@ -94,16 +96,16 @@ const PropertyCodeEditor = forwardRef<HTMLButtonElement, PropertyCodeEditorProps
 
                     {error && (
                         <p className="mt-2 text-sm text-destructive" id={`${name}-error`} role="alert">
-                            This field is required
+                            {errorMessage || 'This field is required.'}
                         </p>
                     )}
                 </fieldset>
 
-                {showPropertyCodeEditorSheet && (
+                {showPropertyJsonSchemaBuilder && (
                     <PropertyCodeEditorSheet
                         language={language}
                         onChange={onChange}
-                        onClose={() => setShowPropertyCodeEditorSheet(false)}
+                        onClose={() => setShowPropertyJsonSchemaBuilder(false)}
                         value={value || defaultValue}
                         workflow={workflow}
                         workflowNodeName={workflowNodeName}

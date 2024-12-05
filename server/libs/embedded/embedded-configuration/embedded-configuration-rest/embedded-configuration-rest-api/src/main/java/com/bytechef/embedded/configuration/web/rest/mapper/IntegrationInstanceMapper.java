@@ -18,7 +18,7 @@ package com.bytechef.embedded.configuration.web.rest.mapper;
 
 import com.bytechef.embedded.configuration.domain.IntegrationInstance;
 import com.bytechef.embedded.configuration.dto.IntegrationInstanceDTO;
-import com.bytechef.embedded.configuration.web.rest.mapper.config.EmbeddedConfigurationMapperSpringConfig;
+import com.bytechef.embedded.configuration.web.rest.mapper.config.IntegrationConfigurationMapperSpringConfig;
 import com.bytechef.embedded.configuration.web.rest.model.IntegrationInstanceBasicModel;
 import com.bytechef.embedded.configuration.web.rest.model.IntegrationInstanceModel;
 import org.mapstruct.InheritInverseConfiguration;
@@ -32,20 +32,22 @@ import org.springframework.core.convert.converter.Converter;
  */
 public class IntegrationInstanceMapper {
 
-    @Mapper(config = EmbeddedConfigurationMapperSpringConfig.class)
+    @Mapper(config = IntegrationConfigurationMapperSpringConfig.class)
     public interface IntegrationInstanceToIntegrationInstanceBasicModelMapper
         extends Converter<IntegrationInstance, IntegrationInstanceBasicModel> {
 
         @Override
+        @Mapping(target = "environment", ignore = true)
         @Mapping(target = "lastExecutionDate", ignore = true)
         IntegrationInstanceBasicModel convert(IntegrationInstance integrationInstanc);
     }
 
-    @Mapper(config = EmbeddedConfigurationMapperSpringConfig.class)
+    @Mapper(config = IntegrationConfigurationMapperSpringConfig.class)
     public interface IntegrationInstanceToIntegrationInstanceModelMapper
         extends Converter<IntegrationInstance, IntegrationInstanceModel> {
 
         @Override
+        @Mapping(target = "environment", ignore = true)
         @Mapping(target = "lastExecutionDate", ignore = true)
         @Mapping(target = "integrationInstanceConfiguration", ignore = true)
         @Mapping(target = "integrationInstanceWorkflows", ignore = true)
@@ -56,7 +58,7 @@ public class IntegrationInstanceMapper {
         IntegrationInstance invertConvert(IntegrationInstanceModel integrationInstanceModel);
     }
 
-    @Mapper(config = EmbeddedConfigurationMapperSpringConfig.class)
+    @Mapper(config = IntegrationConfigurationMapperSpringConfig.class)
     public interface IntegrationInstanceDTOToIntegrationInstanceBasicModelMapper
         extends Converter<IntegrationInstanceDTO, IntegrationInstanceBasicModel> {
 
@@ -64,7 +66,7 @@ public class IntegrationInstanceMapper {
         IntegrationInstanceBasicModel convert(IntegrationInstanceDTO integrationInstance);
     }
 
-    @Mapper(config = EmbeddedConfigurationMapperSpringConfig.class)
+    @Mapper(config = IntegrationConfigurationMapperSpringConfig.class)
     public interface IntegrationInstanceDTOToIntegrationInstanceModelMapper
         extends Converter<IntegrationInstanceDTO, IntegrationInstanceModel> {
 

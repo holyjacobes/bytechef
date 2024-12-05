@@ -20,6 +20,7 @@ import static com.bytechef.component.definition.ComponentDsl.option;
 import static com.bytechef.component.google.calendar.constant.GoogleCalendarConstants.ALL_DAY;
 import static com.bytechef.component.google.calendar.constant.GoogleCalendarConstants.CALENDAR_ID;
 import static com.bytechef.component.google.calendar.constant.GoogleCalendarConstants.DATE_RANGE;
+import static com.bytechef.component.google.calendar.constant.GoogleCalendarConstants.EVENT_ID;
 import static com.bytechef.component.google.calendar.constant.GoogleCalendarConstants.EVENT_TYPE;
 import static com.bytechef.component.google.calendar.constant.GoogleCalendarConstants.FROM;
 import static com.bytechef.component.google.calendar.constant.GoogleCalendarConstants.MAX_RESULTS;
@@ -39,6 +40,7 @@ import static org.mockito.Mockito.when;
 import com.bytechef.component.definition.ActionContext;
 import com.bytechef.component.definition.Option;
 import com.bytechef.component.definition.Parameters;
+import com.bytechef.component.test.definition.MockParametersFactory;
 import com.bytechef.google.commons.GoogleServices;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
@@ -51,8 +53,10 @@ import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -67,13 +71,18 @@ import org.mockito.MockedStatic;
 class GoogleCalendarUtilsTest {
 
     private final ArgumentCaptor<String> calendarIdArgumentCaptor = ArgumentCaptor.forClass(String.class);
+    private final ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
+    private final ArgumentCaptor<String> eventIdArgumentCaptor = ArgumentCaptor.forClass(String.class);
     private final Calendar mockedCalendar = mock(Calendar.class);
     private final Calendar.Events mockedEvents = mock(Calendar.Events.class);
     private final Calendar.Events.List mockedEventsList = mock(Calendar.Events.List.class);
     private final Calendar.CalendarList mockedCalendarList = mock(Calendar.CalendarList.class);
     private final ActionContext mockedContext = mock(ActionContext.class);
+    private final Event mockedEvent = mock(Event.class);
+    private final Calendar.Events.Get mockedGet = mock(Calendar.Events.Get.class);
     private final Calendar.CalendarList.List mockedList = mock(Calendar.CalendarList.List.class);
-    private final Parameters mockedParameters = mock(Parameters.class);
+    private Parameters mockedParameters = mock(Parameters.class);
+    private final Calendar.Events.Update mockedUpdate = mock(Calendar.Events.Update.class);
     private final ArgumentCaptor<String> minAccessRoleArgumentCaptor = ArgumentCaptor.forClass(String.class);
 
     @SuppressWarnings("rawtypes")
@@ -83,15 +92,27 @@ class GoogleCalendarUtilsTest {
     private final ArgumentCaptor<String> qArgumentCaptor = ArgumentCaptor.forClass(String.class);
 
     @Test
-    void testConvertEventDateTimeToLocalDateTime() {
+    void testConvertToTemporalFromEventDateTimeForLocalDateTime() {
         LocalDateTime localDateTime = LocalDateTime.of(2000, 1, 1, 1, 1, 1);
 
         EventDateTime eventDateTime =
             new EventDateTime().setDateTime(new DateTime(convertToDateViaSqlTimestamp(localDateTime)));
 
-        LocalDateTime convertedDateTime = GoogleCalendarUtils.convertEventDateTimeToLocalDateTime(eventDateTime);
+        Temporal convertedDateTime = GoogleCalendarUtils.convertToTemporalFromEventDateTime(eventDateTime);
 
         assertEquals(localDateTime, convertedDateTime);
+    }
+
+    @Test
+    void testConvertToTemporalFromEventDateTimeForLocalDate() {
+        LocalDate localDate = LocalDate.of(2000, 1, 1);
+
+        EventDateTime eventDateTime =
+            new EventDateTime().setDate(new DateTime("2000-01-01"));
+
+        Temporal convertedDateTime = GoogleCalendarUtils.convertToTemporalFromEventDateTime(eventDateTime);
+
+        assertEquals(localDate, convertedDateTime);
     }
 
     @Test
@@ -114,10 +135,7 @@ class GoogleCalendarUtilsTest {
     void testCreateEventDateTimeForAllDayEvent() {
         Date date = new Date();
 
-        when(mockedParameters.getRequiredBoolean(ALL_DAY))
-            .thenReturn(true);
-        when(mockedParameters.getRequiredDate(START))
-            .thenReturn(date);
+        mockedParameters = MockParametersFactory.create(Map.of(ALL_DAY, true, START, date));
 
         EventDateTime eventDateTime = createEventDateTime(mockedParameters, START);
 
@@ -132,10 +150,7 @@ class GoogleCalendarUtilsTest {
     void testCreateEventDateTimeForNotAllDayEvent() {
         LocalDateTime localDateTime = LocalDateTime.of(2000, 11, 11, 22, 20);
 
-        when(mockedParameters.getRequiredBoolean(ALL_DAY))
-            .thenReturn(false);
-        when(mockedParameters.getRequiredLocalDateTime(START))
-            .thenReturn(localDateTime);
+        mockedParameters = MockParametersFactory.create(Map.of(ALL_DAY, false, START, localDateTime));
 
         EventDateTime eventDateTime = createEventDateTime(mockedParameters, START);
 
@@ -263,20 +278,17 @@ class GoogleCalendarUtilsTest {
                 new DateTime(convertToDateViaSqlTimestamp(LocalDateTime.of(2024, 9, 5, 11, 0)))))
             .setEnd(new EventDateTime().setDateTime(
                 new DateTime(convertToDateViaSqlTimestamp(LocalDateTime.of(2024, 9, 5, 12, 0)))));
+        Event e9 = new Event()
+            .setStart(new EventDateTime().setDate(new DateTime("2024-09-04")))
+            .setEnd(new EventDateTime().setDate(new DateTime("2024-09-04")));
 
-        when(mockedParameters.getRequiredString(CALENDAR_ID))
-            .thenReturn("calendarId");
-        when(mockedParameters.getList(EVENT_TYPE, String.class, List.of()))
-            .thenReturn(eventTypes);
-        when(mockedParameters.getInteger(MAX_RESULTS))
-            .thenReturn(10);
-        when(mockedParameters.getString(Q))
-            .thenReturn("q");
-        when(mockedParameters.getMap(DATE_RANGE, LocalDateTime.class, Map.of()))
-            .thenReturn(
+        mockedParameters = MockParametersFactory.create(
+            Map.of(
+                CALENDAR_ID, "calendarId", EVENT_TYPE, eventTypes, MAX_RESULTS, 10, Q, "q",
+                DATE_RANGE,
                 Map.of(
                     FROM, LocalDateTime.of(2024, Month.SEPTEMBER, 3, 12, 0, 0),
-                    TO, LocalDateTime.of(2024, Month.SEPTEMBER, 5, 10, 0, 0)));
+                    TO, LocalDateTime.of(2024, Month.SEPTEMBER, 5, 10, 0, 0))));
 
         try (MockedStatic<GoogleServices> googleServicesMockedStatic = mockStatic(GoogleServices.class)) {
             googleServicesMockedStatic.when(() -> GoogleServices.getCalendar(mockedParameters))
@@ -293,18 +305,44 @@ class GoogleCalendarUtilsTest {
             when(mockedEventsList.setQ(qArgumentCaptor.capture()))
                 .thenReturn(mockedEventsList);
             when(mockedEventsList.execute())
-                .thenReturn(new Events().setItems(List.of(e1, e2, e3, e4, e5, e6, e7, e8)));
+                .thenReturn(new Events().setItems(List.of(e1, e2, e3, e4, e5, e6, e7, e8, e9)));
 
             List<GoogleCalendarUtils.CustomEvent> result =
                 GoogleCalendarUtils.getCustomEvents(mockedParameters, mockedParameters);
 
             assertEquals(
-                List.of(createCustomEvent(e1), createCustomEvent(e2), createCustomEvent(e3), createCustomEvent(e4)),
+                List.of(createCustomEvent(e1), createCustomEvent(e2), createCustomEvent(e3), createCustomEvent(e4),
+                    createCustomEvent(e9)),
                 result);
             assertEquals("calendarId", calendarIdArgumentCaptor.getValue());
             assertEquals(10, maxResultsArgumentCaptor.getValue());
             assertEquals(eventTypes, eventTypesArgumentCaptor.getValue());
             assertEquals("q", qArgumentCaptor.getValue());
+        }
+    }
+
+    @Test
+    void testGetEvent() throws IOException {
+        mockedParameters = MockParametersFactory.create(Map.of(CALENDAR_ID, "calendarId", EVENT_ID, "eventId"));
+
+        try (MockedStatic<GoogleServices> googleServicesMockedStatic = mockStatic(GoogleServices.class)) {
+            googleServicesMockedStatic
+                .when(() -> GoogleServices.getCalendar(mockedParameters))
+                .thenReturn(mockedCalendar);
+
+            when(mockedCalendar.events())
+                .thenReturn(mockedEvents);
+            when(mockedEvents.get(calendarIdArgumentCaptor.capture(), eventIdArgumentCaptor.capture()))
+                .thenReturn(mockedGet);
+            when(mockedGet.execute())
+                .thenReturn(mockedEvent);
+
+            Event event = GoogleCalendarUtils.getEvent(mockedParameters, mockedParameters);
+
+            assertEquals(mockedEvent, event);
+
+            assertEquals("calendarId", calendarIdArgumentCaptor.getValue());
+            assertEquals("eventId", eventIdArgumentCaptor.getValue());
         }
     }
 
@@ -336,6 +374,33 @@ class GoogleCalendarUtilsTest {
             expectedResult.add(option("abc", "abc"));
 
             assertEquals(expectedResult, result);
+        }
+    }
+
+    @Test
+    void testUpdateEvent() throws IOException {
+        mockedParameters = MockParametersFactory.create(Map.of(CALENDAR_ID, "calendarId", EVENT_ID, "eventId"));
+
+        try (MockedStatic<GoogleServices> googleServicesMockedStatic = mockStatic(GoogleServices.class)) {
+            googleServicesMockedStatic
+                .when(() -> GoogleServices.getCalendar(mockedParameters))
+                .thenReturn(mockedCalendar);
+
+            when(mockedCalendar.events())
+                .thenReturn(mockedEvents);
+            when(mockedEvents.update(calendarIdArgumentCaptor.capture(), eventIdArgumentCaptor.capture(),
+                eventArgumentCaptor.capture()))
+                    .thenReturn(mockedUpdate);
+            when(mockedUpdate.execute())
+                .thenReturn(mockedEvent);
+
+            Event event = GoogleCalendarUtils.updateEvent(mockedParameters, mockedParameters, mockedEvent);
+
+            assertEquals(mockedEvent, event);
+
+            assertEquals("calendarId", calendarIdArgumentCaptor.getValue());
+            assertEquals("eventId", eventIdArgumentCaptor.getValue());
+            assertEquals(mockedEvent, eventArgumentCaptor.getValue());
         }
     }
 }

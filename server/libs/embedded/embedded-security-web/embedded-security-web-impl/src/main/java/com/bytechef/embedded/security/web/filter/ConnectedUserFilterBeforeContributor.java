@@ -42,7 +42,7 @@ public class ConnectedUserFilterBeforeContributor implements FilterBeforeContrib
     @Override
     @SuppressFBWarnings("EI")
     public Filter getFilter(AuthenticationManager authenticationManager) {
-        return new ConnectedUserAuthenticationFilter(authenticationManager, signingKeyService);
+        return new ConnectedUserAuthenticationFilter(authenticationManager);
     }
 
     @Override

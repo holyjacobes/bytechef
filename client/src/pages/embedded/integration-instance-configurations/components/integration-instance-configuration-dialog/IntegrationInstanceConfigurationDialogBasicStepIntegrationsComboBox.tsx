@@ -16,7 +16,7 @@ const IntegrationLabel = ({
     <div className="flex items-center gap-2">
         {componentDefinition?.icon && <InlineSVG className="size-6 flex-none" src={componentDefinition.icon} />}
 
-        <span className="mr-1 ">{integration.name}</span>
+        <span className="mr-1">{integration.name}</span>
 
         <span className="text-xs text-gray-500">{integration?.tags?.map((tag) => tag.name).join(', ')}</span>
     </div>
@@ -39,6 +39,7 @@ const IntegrationInstanceConfigurationDialogBasicStepIntegrationsComboBox = ({
 
     return integrations && componentDefinitions ? (
         <ComboBox
+            emptyMessage="No published integrations found. Please publish an integration first."
             items={integrations.map((integration) => {
                 const componentDefinition = componentDefinitions.filter(
                     (componentDefinition) => componentDefinition.name === integration.componentName

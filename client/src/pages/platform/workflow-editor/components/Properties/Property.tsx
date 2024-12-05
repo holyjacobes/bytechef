@@ -1,3 +1,5 @@
+import {DEFAULT_SCHEMA} from '@/components/JsonSchemaBuilder/utils/constants';
+import {SchemaRecordType} from '@/components/JsonSchemaBuilder/utils/types';
 import RequiredMark from '@/components/RequiredMark';
 import {Label} from '@/components/ui/label';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
@@ -6,6 +8,7 @@ import PropertyCodeEditor from '@/pages/platform/workflow-editor/components/Prop
 import PropertyComboBox from '@/pages/platform/workflow-editor/components/Properties/components/PropertyComboBox';
 import PropertyDynamicProperties from '@/pages/platform/workflow-editor/components/Properties/components/PropertyDynamicProperties';
 import PropertyInput from '@/pages/platform/workflow-editor/components/Properties/components/PropertyInput/PropertyInput';
+import PropertyJsonSchemaBuilder from '@/pages/platform/workflow-editor/components/Properties/components/PropertyJsonSchemaBuilder/PropertyJsonSchemaBuilder';
 import PropertyMentionsInput from '@/pages/platform/workflow-editor/components/Properties/components/PropertyMentionsInput/PropertyMentionsInput';
 import PropertySelect, {
     SelectOptionType,
@@ -18,12 +21,13 @@ import useWorkflowNodeDetailsPanelStore from '@/pages/platform/workflow-editor/s
 import deleteProperty from '@/pages/platform/workflow-editor/utils/deleteProperty';
 import getInputHTMLType from '@/pages/platform/workflow-editor/utils/getInputHTMLType';
 import saveProperty from '@/pages/platform/workflow-editor/utils/saveProperty';
-import {PATH_SPACE_REPLACEMENT} from '@/shared/constants';
+import {PATH_DIGIT_PREFIX, PATH_SPACE_REPLACEMENT} from '@/shared/constants';
 import {Option} from '@/shared/middleware/platform/configuration';
-import {PropertyAllType} from '@/shared/types';
+import {ArrayPropertyType, PropertyAllType} from '@/shared/types';
 import {QuestionMarkCircledIcon} from '@radix-ui/react-icons';
 import {TooltipPortal} from '@radix-ui/react-tooltip';
 import {usePrevious} from '@uidotdev/usehooks';
+import {decode} from 'html-entities';
 import resolvePath from 'object-resolve-path';
 import {ChangeEvent, KeyboardEvent, ReactNode, useEffect, useRef, useState} from 'react';
 import {Control, Controller, FieldValues, FormState} from 'react-hook-form';
@@ -34,6 +38,7 @@ import {twMerge} from 'tailwind-merge';
 import {useDebouncedCallback} from 'use-debounce';
 
 import useWorkflowEditorStore from '../../stores/useWorkflowEditorStore';
+import formatKeysWithDigits from '../../utils/formatKeysWithDigits';
 import replaceSpacesInKeys from '../../utils/replaceSpacesInObjectKeys';
 import ArrayProperty from './ArrayProperty';
 import ObjectProperty from './ObjectProperty';
@@ -66,6 +71,7 @@ interface PropertyProps {
     operationName?: string;
     /* eslint-disable @typescript-eslint/no-explicit-any */
     parameterValue?: any;
+    parentArrayItems?: Array<ArrayPropertyType>;
     path?: string;
     property: PropertyAllType;
 }
@@ -81,6 +87,7 @@ const Property = ({
     objectName,
     operationName,
     parameterValue,
+    parentArrayItems,
     path,
     property,
 }: PropertyProps) => {
@@ -112,7 +119,8 @@ const Property = ({
     } = useWorkflowNodeDetailsPanelStore();
     const {setDataPillPanelOpen} = useDataPillPanelStore();
     const {componentDefinitions, workflow} = useWorkflowDataStore();
-    const {showPropertyCodeEditorSheet, showWorkflowCodeEditorSheet} = useWorkflowEditorStore();
+    const {showPropertyCodeEditorSheet, showPropertyJsonSchemaBuilder, showWorkflowCodeEditorSheet} =
+        useWorkflowEditorStore();
 
     const previousOperationName = usePrevious(currentNode?.operationName);
     const previousMentionInputValue = usePrevious(mentionInputValue);
@@ -121,6 +129,7 @@ const Property = ({
 
     const {
         controlType,
+        custom,
         description,
         hidden,
         label,
@@ -182,6 +191,13 @@ const Property = ({
         path = path.replace(/\s/g, PATH_SPACE_REPLACEMENT);
     }
 
+    if (path) {
+        path = path
+            .split('.')
+            .map((step) => (step.match(/^\d/) ? `${PATH_DIGIT_PREFIX}${step}` : step))
+            .join('.');
+    }
+
     const getComponentIcon = (mentionValue: string) => {
         let componentName = mentionValue.split('_')[0].replace('${', '');
 
@@ -201,7 +217,7 @@ const Property = ({
 
         saveProperty({
             currentComponent,
-            includeInMetadata: property.custom,
+            includeInMetadata: custom,
             path,
             setCurrentComponent,
             type,
@@ -308,9 +324,13 @@ const Property = ({
                   })
                 : strippedValue;
 
+        if (typeof strippedValue === 'string') {
+            strippedValue = decode(strippedValue);
+        }
+
         saveProperty({
             currentComponent,
-            includeInMetadata: property.custom,
+            includeInMetadata: custom,
             path,
             setCurrentComponent,
             type,
@@ -327,7 +347,7 @@ const Property = ({
 
         saveProperty({
             currentComponent,
-            includeInMetadata: property.custom,
+            includeInMetadata: custom,
             path,
             setCurrentComponent,
             type,
@@ -346,6 +366,26 @@ const Property = ({
             deleteWorkflowNodeParameterMutation!
         );
     };
+
+    const handleJsonSchemaBuilderChange = useDebouncedCallback((value?: SchemaRecordType) => {
+        if (!currentComponent || !name || !path || !updateWorkflowNodeParameterMutation || !workflow.id) {
+            return;
+        }
+
+        saveProperty({
+            currentComponent,
+            includeInMetadata: property.custom,
+            path,
+            setCurrentComponent,
+            successCallback: () => {
+                setInputValue(JSON.stringify(value));
+            },
+            type,
+            updateWorkflowNodeParameterMutation,
+            value: JSON.stringify(value),
+            workflowId: workflow.id,
+        });
+    }, 200);
 
     const handleInputChange = (event: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
         if (isNumericalInput) {
@@ -471,7 +511,7 @@ const Property = ({
 
         saveProperty({
             currentComponent,
-            includeInMetadata: property.custom,
+            includeInMetadata: custom,
             path,
             setCurrentComponent,
             type,
@@ -497,13 +537,14 @@ const Property = ({
             if (
                 typeof propertyParameterValue === 'string' &&
                 controlType !== 'SELECT' &&
+                controlType !== 'JSON_SCHEMA_BUILDER' &&
                 (propertyParameterValue.includes('${') || type === 'STRING')
             ) {
                 setMentionInput(true);
             }
         }
 
-        if (controlType === 'SELECT' || controlType === 'OBJECT_BUILDER') {
+        if (controlType === 'SELECT' || controlType === 'JSON_SCHEMA_BUILDER' || controlType === 'OBJECT_BUILDER') {
             if (
                 propertyParameterValue &&
                 typeof propertyParameterValue === 'string' &&
@@ -538,21 +579,23 @@ const Property = ({
 
         const {parameters} = currentComponent;
 
-        if (!propertyParameterValue || propertyParameterValue === defaultValue) {
+        if (Object.keys(parameters).length && (!propertyParameterValue || propertyParameterValue === defaultValue)) {
             if (!path) {
                 setPropertyParameterValue(parameters[name]);
 
                 return;
             }
 
-            const formattedParamaters = replaceSpacesInKeys(parameters);
+            let formattedParameters = replaceSpacesInKeys(parameters);
 
-            const paramValue = resolvePath(formattedParamaters, path);
+            formattedParameters = formatKeysWithDigits(formattedParameters);
+
+            const paramValue = resolvePath(formattedParameters, path);
 
             if (paramValue !== undefined || paramValue !== null) {
                 setPropertyParameterValue(paramValue);
             } else {
-                setPropertyParameterValue(formattedParamaters[name]);
+                setPropertyParameterValue(formattedParameters[name]);
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -623,10 +666,11 @@ const Property = ({
             setInputValue(propertyParameterValue);
         }
 
-        if (
-            controlType === 'SELECT' &&
-            (selectValue === '' || (selectValue === defaultValue && propertyParameterValue !== undefined))
-        ) {
+        if (!mentionInput && controlType === 'JSON_SCHEMA_BUILDER' && propertyParameterValue !== undefined) {
+            setInputValue(propertyParameterValue);
+        }
+
+        if (controlType === 'SELECT' && propertyParameterValue !== undefined) {
             if (propertyParameterValue === null) {
                 setSelectValue('null');
             } else if (propertyParameterValue !== undefined) {
@@ -695,6 +739,10 @@ const Property = ({
             setShowInputTypeSwitchButton(false);
         }
 
+        if (controlType === 'JSON_SCHEMA_BUILDER') {
+            setShowInputTypeSwitchButton(true);
+        }
+
         if (controlType === 'SELECT') {
             setShowInputTypeSwitchButton(true);
         }
@@ -711,7 +759,7 @@ const Property = ({
             !currentNode?.name ||
             !name ||
             !path ||
-            !(showPropertyCodeEditorSheet || showWorkflowCodeEditorSheet)
+            !(showPropertyCodeEditorSheet || showPropertyJsonSchemaBuilder || showWorkflowCodeEditorSheet)
         ) {
             return;
         }
@@ -797,7 +845,7 @@ const Property = ({
         ) {
             saveProperty({
                 currentComponent,
-                includeInMetadata: property.custom,
+                includeInMetadata: custom,
                 path,
                 setCurrentComponent,
                 type,
@@ -808,6 +856,38 @@ const Property = ({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [propertyParameterValue]);
+
+    // save hidden property to definition on render
+    useEffect(() => {
+        if (
+            hidden &&
+            currentComponent &&
+            path &&
+            updateWorkflowNodeParameterMutation &&
+            resolvePath(currentComponent.parameters, path) !== defaultValue
+        ) {
+            const saveDefaultValue = () => {
+                saveProperty({
+                    currentComponent,
+                    path,
+                    setCurrentComponent,
+                    type,
+                    updateWorkflowNodeParameterMutation,
+                    value: defaultValue,
+                    workflowId: workflow.id!,
+                });
+            };
+
+            const timeoutId = setTimeout(saveDefaultValue, 200);
+
+            return () => clearTimeout(timeoutId);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    if (hidden) {
+        return <></>;
+    }
 
     return (
         <li
@@ -902,6 +982,7 @@ const Property = ({
                     {(controlType === 'ARRAY_BUILDER' || controlType === 'MULTI_SELECT') && path && (
                         <ArrayProperty
                             onDeleteClick={handleDeleteCustomPropertyClick}
+                            parentArrayItems={parentArrayItems}
                             path={path}
                             property={property}
                         />
@@ -931,6 +1012,7 @@ const Property = ({
                                     <PropertyInput
                                         description={description}
                                         error={hasError}
+                                        errorMessage={errorMessage}
                                         label={label || name}
                                         leadingIcon={typeIcon}
                                         placeholder={placeholder}
@@ -958,6 +1040,7 @@ const Property = ({
                                     name={name}
                                     onValueChange={(value) => {
                                         onChange(value);
+
                                         setSelectValue(value);
                                     }}
                                     options={options as Array<SelectOptionType>}
@@ -1004,6 +1087,7 @@ const Property = ({
                                 <PropertyTextArea
                                     description={description}
                                     error={hasError}
+                                    errorMessage={errorMessage}
                                     label={label || name}
                                     leadingIcon={typeIcon}
                                     required={required}
@@ -1059,6 +1143,20 @@ const Property = ({
                         />
                     )}
 
+                    {!control && controlType === 'JSON_SCHEMA_BUILDER' && (
+                        <PropertyJsonSchemaBuilder
+                            description={description}
+                            error={hasError}
+                            errorMessage={errorMessage}
+                            handleInputTypeSwitchButtonClick={handleInputTypeSwitchButtonClick}
+                            label={label || name}
+                            leadingIcon={typeIcon}
+                            name={name!}
+                            onChange={(value) => handleJsonSchemaBuilderChange(value)}
+                            schema={inputValue ? JSON.parse(inputValue) : DEFAULT_SCHEMA}
+                        />
+                    )}
+
                     {!control && controlType === 'SELECT' && type !== 'BOOLEAN' && (
                         <PropertyComboBox
                             arrayIndex={arrayIndex}
@@ -1108,6 +1206,7 @@ const Property = ({
                         <PropertyTextArea
                             description={description}
                             error={hasError}
+                            errorMessage={errorMessage}
                             key={`${currentNode?.name}_${currentComponent?.operationName}_${name}`}
                             label={label || name}
                             leadingIcon={typeIcon}
@@ -1137,6 +1236,8 @@ const Property = ({
                 <PropertyCodeEditor
                     defaultValue={defaultValue}
                     description={description}
+                    error={hasError}
+                    errorMessage={errorMessage}
                     key={`${currentNode?.name}_${currentComponent?.operationName}_${name}`}
                     label={label || name}
                     language={languageId!}

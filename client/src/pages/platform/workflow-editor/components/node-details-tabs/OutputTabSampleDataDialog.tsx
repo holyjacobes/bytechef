@@ -7,28 +7,12 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {EDITOR_PLACEHOLDER, SPACE} from '@/shared/constants';
 import Editor from '@monaco-editor/react';
 import {editor} from 'monaco-editor';
-import {useEffect, useState} from 'react';
 import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 
-const placeholder = (
-    <>
-        <pre>{'//'}Write sample output value, for example:</pre>
-        <pre>{'{'}</pre>
-        <pre className="pl-4">{'"country": "USA"'}</pre>
-        <pre className="pl-4">{'"people": ['}</pre>
-        <pre className="pl-8">{'{'}</pre>
-        <pre className="pl-12">{'"firstName": Joe'}</pre>
-        <pre className="pl-12">{'"lastName": Jackson'}</pre>
-        <pre className="pl-12">{'"gender": Male'}</pre>
-        <pre className="pl-12">{'"age": 28'}</pre>
-        <pre className="pl-12">{'"number": 7349282382'}</pre>
-        <pre className="pl-8">{'}'}</pre>
-        <pre className="pl-4">{']'}</pre>
-        <pre>{'}'}</pre>
-    </>
-);
+import {useEffect, useState} from 'react';
 
 const OutputTabSampleDataDialog = ({
     onClose,
@@ -90,9 +74,7 @@ const OutputTabSampleDataDialog = ({
         <Dialog onOpenChange={handleOpenChange} open={open}>
             <DialogContent className="max-w-output-tab-sample-data-dialog-width">
                 <DialogHeader>
-                    <div className="flex items-center justify-between">
-                        <DialogTitle>Upload Sample Output Data</DialogTitle>
-                    </div>
+                    <DialogTitle>Upload Sample Output Data</DialogTitle>
 
                     <DialogDescription>
                         Add sample value in JSON format. Click Upload when you&apos;re done.
@@ -106,14 +88,14 @@ const OutputTabSampleDataDialog = ({
                             defaultLanguage="json"
                             onChange={handleEditorOnChange}
                             onMount={handleEditorOnMount}
-                            value={JSON.stringify(value, null, 4)}
+                            value={JSON.stringify(value, null, SPACE)}
                         />
 
                         <div
                             className="absolute left-[70px] top-[-2px] h-full text-sm text-muted-foreground"
                             id="monaco-placeholder"
                         >
-                            {placeholder}
+                            {EDITOR_PLACEHOLDER}
                         </div>
                     </div>
                 </div>

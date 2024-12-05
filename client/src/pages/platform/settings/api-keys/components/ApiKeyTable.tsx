@@ -149,7 +149,7 @@ const ApiKeyTable = ({apiKeys}: ApiKeyTableProps) => {
             <Table className="table-auto">
                 <TableHeader>
                     {headerGroups.map((headerGroup) => (
-                        <TableRow key={headerGroup.id}>
+                        <TableRow className="border-b-border/50" key={headerGroup.id}>
                             {headerGroup.headers.map((header) => (
                                 <TableHead
                                     className="sticky top-0 z-10 bg-white p-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500"
@@ -163,15 +163,15 @@ const ApiKeyTable = ({apiKeys}: ApiKeyTableProps) => {
                     ))}
                 </TableHeader>
 
-                <TableBody className="divide-y divide-gray-200 bg-white">
+                <TableBody>
                     {rows.map((row) => (
-                        <TableRow className="cursor-pointer" key={row.id}>
+                        <TableRow className="cursor-pointer border-b-border/50" key={row.id}>
                             {row.getVisibleCells().map((cell) => (
                                 <TableCell
                                     className={twMerge(
                                         'whitespace-nowrap',
                                         cell.id.endsWith('actions') && 'flex justify-end',
-                                        cell.id.endsWith('enabled') && 'flex ml-6'
+                                        cell.id.endsWith('enabled') && 'ml-6 flex'
                                     )}
                                     key={cell.id}
                                     onClick={(event) => {

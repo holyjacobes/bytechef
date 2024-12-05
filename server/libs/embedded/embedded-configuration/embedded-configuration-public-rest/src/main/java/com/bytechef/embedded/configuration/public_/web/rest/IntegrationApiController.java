@@ -17,7 +17,7 @@
 package com.bytechef.embedded.configuration.public_.web.rest;
 
 import com.bytechef.atlas.coordinator.annotation.ConditionalOnCoordinator;
-import com.bytechef.embedded.configuration.facade.IntegrationFacade;
+import com.bytechef.embedded.configuration.facade.IntegrationInstanceConfigurationFacade;
 import com.bytechef.embedded.configuration.public_.web.rest.converter.CaseInsensitiveEnumPropertyEditorSupport;
 import com.bytechef.embedded.configuration.public_.web.rest.model.EnvironmentModel;
 import com.bytechef.embedded.configuration.public_.web.rest.model.IntegrationModel;
@@ -28,36 +28,36 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * @author Ivica Cardic
- */
-@CrossOrigin
 @RestController("com.bytechef.embedded.configuration.public_.web.rest.IntegrationApiController")
 @RequestMapping("${openapi.openAPIDefinition.base-path.embedded:}/v1")
 @ConditionalOnCoordinator
 public class IntegrationApiController implements IntegrationApi {
 
     private final ConversionService conversionService;
-    private final IntegrationFacade integrationFacade;
+    private final IntegrationInstanceConfigurationFacade integrationInstanceConfigurationFacade;
 
     @SuppressFBWarnings("EI")
-    public IntegrationApiController(ConversionService conversionService, IntegrationFacade integrationFacade) {
+    public IntegrationApiController(
+        ConversionService conversionService,
+        IntegrationInstanceConfigurationFacade integrationInstanceConfigurationFacade) {
+
         this.conversionService = conversionService;
-        this.integrationFacade = integrationFacade;
+        this.integrationInstanceConfigurationFacade = integrationInstanceConfigurationFacade;
     }
 
     @Override
-    public ResponseEntity<List<IntegrationModel>> getIntegrations(EnvironmentModel xEnvironment) {
+    public ResponseEntity<List<IntegrationModel>> getIntegrations(
+        String externalUserId, EnvironmentModel xEnvironment) {
+
         Environment environment = xEnvironment == null
             ? Environment.PRODUCTION : Environment.valueOf(StringUtils.upperCase(xEnvironment.name()));
 
         return ResponseEntity.ok(
-            integrationFacade
+            integrationInstanceConfigurationFacade
                 .getEnabledIntegrationInstanceConfigurationIntegrations(environment)
                 .stream()
                 .map(integrationDTO -> conversionService.convert(integrationDTO, IntegrationModel.class))

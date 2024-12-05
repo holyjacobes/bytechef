@@ -23,9 +23,10 @@ import com.bytechef.component.definition.ComponentCategory;
 import com.bytechef.component.definition.ComponentDefinition;
 import com.bytechef.component.object.helper.action.ObjectHelperAddKeyValuePairsAction;
 import com.bytechef.component.object.helper.action.ObjectHelperAddValueByKeyAction;
+import com.bytechef.component.object.helper.action.ObjectHelperContainsAction;
 import com.bytechef.component.object.helper.action.ObjectHelperDeleteKeyValuePairAction;
-import com.bytechef.component.object.helper.action.ObjectHelperParseAction;
-import com.bytechef.component.object.helper.action.ObjectHelperStringifyAction;
+import com.bytechef.component.object.helper.action.ObjectHelperEqualsAction;
+import com.bytechef.component.object.helper.action.ObjectHelperMergeTwoObjectsAction;
 import com.google.auto.service.AutoService;
 
 /**
@@ -40,11 +41,12 @@ public class ObjectHelperComponentHandler implements ComponentHandler {
         .icon("path:assets/object-helper.svg")
         .categories(ComponentCategory.HELPERS)
         .actions(
-            ObjectHelperParseAction.ACTION_DEFINITION,
-            ObjectHelperStringifyAction.ACTION_DEFINITION,
             ObjectHelperAddValueByKeyAction.ACTION_DEFINITION,
             ObjectHelperAddKeyValuePairsAction.ACTION_DEFINITION,
-            ObjectHelperDeleteKeyValuePairAction.ACTION_DEFINITION);
+            ObjectHelperContainsAction.ACTION_DEFINITION,
+            ObjectHelperDeleteKeyValuePairAction.ACTION_DEFINITION,
+            ObjectHelperEqualsAction.ACTION_DEFINITION,
+            ObjectHelperMergeTwoObjectsAction.ACTION_DEFINITION);
 
     @Override
     public ComponentDefinition getDefinition() {

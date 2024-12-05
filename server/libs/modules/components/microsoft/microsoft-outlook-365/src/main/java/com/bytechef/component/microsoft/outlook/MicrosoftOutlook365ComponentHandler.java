@@ -21,7 +21,12 @@ import static com.bytechef.component.definition.ComponentDsl.component;
 import com.bytechef.component.ComponentHandler;
 import com.bytechef.component.definition.ComponentCategory;
 import com.bytechef.component.definition.ComponentDefinition;
+import com.bytechef.component.microsoft.outlook.action.MicrosoftOutlook365CreateEventAction;
+import com.bytechef.component.microsoft.outlook.action.MicrosoftOutlook365DeleteEventAction;
+import com.bytechef.component.microsoft.outlook.action.MicrosoftOutlook365GetEventsAction;
+import com.bytechef.component.microsoft.outlook.action.MicrosoftOutlook365GetFreeTimeSlotsAction;
 import com.bytechef.component.microsoft.outlook.action.MicrosoftOutlook365GetMailAction;
+import com.bytechef.component.microsoft.outlook.action.MicrosoftOutlook365ReplyToEmailAction;
 import com.bytechef.component.microsoft.outlook.action.MicrosoftOutlook365SearchEmailAction;
 import com.bytechef.component.microsoft.outlook.action.MicrosoftOutlook365SendEmailAction;
 import com.bytechef.component.microsoft.outlook.connection.MicrosoftOutlook365Connection;
@@ -29,7 +34,7 @@ import com.bytechef.component.microsoft.outlook.trigger.MicrosoftOutlook365NewEm
 import com.google.auto.service.AutoService;
 
 /**
- * @author Monika Domiter
+ * @author Monika Kušter
  */
 @AutoService(ComponentHandler.class)
 public class MicrosoftOutlook365ComponentHandler implements ComponentHandler {
@@ -44,7 +49,12 @@ public class MicrosoftOutlook365ComponentHandler implements ComponentHandler {
         .categories(ComponentCategory.COMMUNICATION, ComponentCategory.CALENDARS_AND_SCHEDULING)
         .connection(MicrosoftOutlook365Connection.CONNECTION_DEFINITION)
         .actions(
+            MicrosoftOutlook365CreateEventAction.ACTION_DEFINITION,
+            MicrosoftOutlook365DeleteEventAction.ACTION_DEFINITION,
+            MicrosoftOutlook365GetEventsAction.ACTION_DEFINITION,
+            MicrosoftOutlook365GetFreeTimeSlotsAction.ACTION_DEFINITION,
             MicrosoftOutlook365GetMailAction.ACTION_DEFINITION,
+            MicrosoftOutlook365ReplyToEmailAction.ACTION_DEFINITION,
             MicrosoftOutlook365SearchEmailAction.ACTION_DEFINITION,
             MicrosoftOutlook365SendEmailAction.ACTION_DEFINITION)
         .triggers(MicrosoftOutlook365NewEmailTrigger.TRIGGER_DEFINITION);

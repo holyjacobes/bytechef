@@ -179,7 +179,7 @@ const ObjectProperty = ({arrayIndex, arrayName, onDeleteClick, operationName, pa
             <ul
                 className={twMerge(
                     'space-y-4',
-                    label && !isContainerObject && 'ml-2 border-l',
+                    label && !isContainerObject && 'ml-2 border-l border-l-border/50',
                     arrayName && !isContainerObject && 'pl-2'
                 )}
             >
@@ -204,7 +204,6 @@ const ObjectProperty = ({arrayIndex, arrayName, onDeleteClick, operationName, pa
                         key={`${property.name}_${subProperty.name}_${index}`}
                         objectName={arrayName ? '' : name}
                         operationName={operationName}
-                        parameterValue={subProperty.defaultValue}
                         path={`${path}.${subProperty.name}`}
                         property={{
                             ...subProperty,

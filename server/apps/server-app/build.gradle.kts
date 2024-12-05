@@ -171,6 +171,7 @@ dependencies {
     implementation(project(":server:libs:modules:components:jira"))
     implementation(project(":server:libs:modules:components:jotform"))
     implementation(project(":server:libs:modules:components:json-file"))
+    implementation(project(":server:libs:modules:components:json-helper"))
     implementation(project(":server:libs:modules:components:keap"))
     implementation(project(":server:libs:modules:components:llm:amazon-bedrock"))
     implementation(project(":server:libs:modules:components:llm:anthropic"))
@@ -234,6 +235,7 @@ dependencies {
     implementation(project(":server:libs:modules:components:xml-file"))
     implementation(project(":server:libs:modules:components:xml-helper"))
     implementation(project(":server:libs:modules:components:zendesk-sell"))
+    implementation(project(":server:libs:modules:components:zeplin"))
     implementation(project(":server:libs:modules:components:zoho:zoho-crm"))
 
     implementation(project(":server:libs:modules:task-dispatchers:branch"))
@@ -250,6 +252,7 @@ dependencies {
     implementation(project(":server:ee:libs:automation:automation-api-platform:automation-api-platform-configuration:automation-api-platform-configuration-service"))
     implementation(project(":server:ee:libs:automation:automation-api-platform:automation-api-platform-handler:automation-api-platform-handler-rest"))
     implementation(project(":server:ee:libs:automation:automation-api-platform:automation-api-platform-handler:automation-api-platform-handler-impl"))
+    implementation(project(":server:ee:libs:automation:automation-api-platform:automation-api-platform-handler:automation-api-platform-handler-security-web:automation-api-platform-handler-security-web-impl"))
     implementation(project(":server:ee:libs:config:tenant-multi-data-config"))
     implementation(project(":server:ee:libs:config:tenant-multi-message-event-config"))
     implementation(project(":server:ee:libs:config:tenant-multi-security-config"))
